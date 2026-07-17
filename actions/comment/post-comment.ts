@@ -1,35 +1,38 @@
 "use server";
 
 import { commentSchema } from "@/lib/validation/comment";
-import { Database } from "@/types/supabase";
-import { createClient } from "@/utils/supabase/server";
-import { cookies } from "next/headers";
+import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
 import * as z from "zod";
 
 export async function PostComment(context: z.infer<typeof commentSchema>) {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
   try {
-    const comment = commentSchema.parse(context);
-    const { data, error } = await supabase
-      .from("comments")
-      .insert({
-        post_id: comment.postId,
-        user_id: comment.userId,
-        comment: comment.comment,
-      })
-      .single();
+    const session = await getSession();
+    if (!session) return false;
 
-    if (error) {
-      console.log(error);
-      return false;
-    }
+    const comment = commentSchema.parse(context);
+    
+    const profile = await prisma.profile.findUnique({
+      where: { id: session.userId },
+    });
+
+    const data = await prisma.comment.create({
+      data: {
+        postId: comment.postId,
+        userId: session.userId,
+        username: profile?.username || session.name || "Anonymous",
+        image: profile?.avatarUrl || null,
+        comment: comment.comment,
+      },
+    });
+
     return true;
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.log(error);
       return false;
     }
+    console.log(error);
     return false;
   }
 }

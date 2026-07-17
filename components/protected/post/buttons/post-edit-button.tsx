@@ -1,4 +1,4 @@
-import { DeletePost } from "@/actions/post/delete-post";
+import { DeletePost } from "@/actions/images/post/delete-post";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,15 +17,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { protectedPostConfig } from "@/config/protected";
-import { createClient } from "@/utils/supabase/client";
-import { Session } from "@supabase/supabase-js";
 import {
   MoreVertical as ElipsisIcon,
   Loader2 as SpinnerIcon,
   Trash as TrashIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { FC, useState } from "react";
+import React, { FC, useState, useEffect } from "react";
 import toast from "react-hot-toast";
 
 export const dynamic = "force-dynamic";
@@ -36,35 +34,26 @@ interface PostEditButtonProps {
 }
 
 const PostEditButton: FC<PostEditButtonProps> = ({ id }) => {
-  const supabase = createClient();
   const router = useRouter();
   const [showDeleteAlert, setShowDeleteAlert] = useState<boolean>(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
-  const [session, setSession] = React.useState<Session | null>(null);
   const [showLoadingAlert, setShowLoadingAlert] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
-  // Check authentitication and bookmark states
-  React.useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [id, session?.user.id, supabase.auth]);
+  useEffect(() => {
+    async function checkAuth() {
+      const res = await fetch("/api/auth/me", { credentials: "include" });
+      setIsAuthenticated(res.ok);
+    }
+    checkAuth();
+  }, []);
 
   // Delete post
   async function deleteMyPost() {
     setIsDeleteLoading(true);
-    if (id && session?.user.id) {
+    if (id && isAuthenticated) {
       const myPostData = {
         id: id,
-        user_id: session?.user.id,
       };
       const response = await DeletePost(myPostData);
       if (response) {

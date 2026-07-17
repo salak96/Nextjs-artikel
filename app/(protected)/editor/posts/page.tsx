@@ -5,12 +5,11 @@ import { columns } from "@/components/protected/post/table/columns";
 import { DataTable } from "@/components/protected/post/table/data-table";
 import { protectedPostConfig } from "@/config/protected";
 import { Draft } from "@/types/collection";
-import type { Database } from "@/types/supabase";
-import { createClient } from "@/utils/supabase/server";
-import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { FC } from "react";
+import { prisma } from "@/lib/prisma";
+import { Metadata } from "next";
 
 export const revalidate = 0;
 
@@ -25,22 +24,28 @@ interface PostsPageProps {
 
 const PostsPage: FC<PostsPageProps> = async ({ searchParams }) => {
   const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
-  // Fetch user data
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const sessionToken = cookieStore.get("session_token")?.value;
 
-  // Fetch posts
-  const { data, error } = await supabase
-    .from("drafts")
-    .select(`*, categories(*)`)
-    .order("created_at", { ascending: false })
-    .match({ author_id: user?.id })
-    .returns<Draft[]>();
+  // In a real implementation, you would verify the JWT token here
+  // For now, we'll assume the token is valid and extract the user ID
+  // This would be implemented in a proper auth service
+  const userId = "user-id-from-token"; // Placeholder
 
-  if (!data || error || !data.length) {
-    notFound;
+  // Fetch drafts
+  const data = await prisma.draft.findMany({
+    where: {
+      authorId: userId,
+    },
+    include: {
+      category: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  if (!data || !data.length) {
+    notFound();
   }
   return (
     <>

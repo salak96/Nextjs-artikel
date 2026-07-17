@@ -1,0 +1,139 @@
+
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model User {
+  id          String @id @default(uuid())
+
+  name        String?
+  email       String @unique
+  password    String
+
+  profile     Profile?
+  bookmarks   Bookmark[]
+  comments    Comment[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Profile {
+  id         String @id
+
+  username   String @unique
+  fullName   String
+  avatarUrl  String?
+  website    String?
+
+  user User @relation(fields: [id], references: [id])
+
+  updatedAt DateTime @updatedAt
+}
+
+model Author {
+  id        String @id @default(uuid())
+
+  name      String
+  title     String?
+  image     String?
+  email     String @unique
+
+  posts     Post[]
+  drafts    Draft[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id        String @id @default(uuid())
+
+  title     String
+  slug      String @unique
+
+  posts     Post[]
+  drafts    Draft[]
+
+  createdAt DateTime @default(now())
+}
+
+model Post {
+  id          String @id @default(uuid())
+
+  title       String
+  slug        String @unique
+
+  image       String?
+  description String?
+  content     String @db.LongText
+
+  categoryId  String
+  authorId    String
+
+  category Category @relation(fields: [categoryId], references: [id])
+  author   Author   @relation(fields: [authorId], references: [id])
+
+  comments  Comment[]
+  bookmarks Bookmark[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+}
+
+model Comment {
+  id        String @id @default(uuid())
+
+  username  String
+  comment   String @db.LongText
+  image     String?
+
+  userId    String?
+  postId    String
+
+  user      User?   @relation(fields: [userId], references: [id])
+  post      Post    @relation(fields: [postId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Bookmark {
+  id String @id @default(uuid())
+
+  userId String
+  postId String
+
+  user User @relation(fields: [userId], references: [id])
+  post Post @relation(fields: [postId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+}
+
+model Draft {
+  id String @id @default(uuid())
+
+  authorId String?
+  categoryId String?
+  content String? @db.LongText
+  createdAt DateTime @default(now())
+  description String?
+  image String?
+  slug String?
+  status String?
+  title String?
+  updatedAt DateTime? @updatedAt
+
+  author Author? @relation(fields: [authorId], references: [id])
+  category Category? @relation(fields: [categoryId], references: [id])
+
+  @@index([slug])
+}

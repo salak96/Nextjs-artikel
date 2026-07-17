@@ -1,4 +1,4 @@
-import { DetailPostLoading } from "@/components/detail/post";
+import { DetailPostLoading } from "../../../../components/detail/post";
 import React from "react";
 
 const Loading = () => {

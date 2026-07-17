@@ -1,4 +1,4 @@
-import { SharedNotFound } from "@/components/shared";
+import { SharedNotFound } from "../../../../components/shared";
 import React from "react";
 
 const NotFound = () => {

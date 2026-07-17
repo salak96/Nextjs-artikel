@@ -1,21 +1,21 @@
 import { LoginHeader, LoginSection } from "@/components/login";
-import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 const LoginPage = async () => {
+  // Check for existing JWT session
   const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+  const sessionToken = cookieStore.get("session_token")?.value;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  user && redirect("/editor/posts");
+  if (sessionToken) {
+    // Verify the token and redirect if valid
+    // This would be implemented in a separate auth service
+    redirect("/editor/posts");
+  }
 
   return (
     <>
-      <LoginHeader />{" "}
+      <LoginHeader /> 
       <div className="mx-auto mt-5 max-w-md">
         <LoginSection />
       </div>

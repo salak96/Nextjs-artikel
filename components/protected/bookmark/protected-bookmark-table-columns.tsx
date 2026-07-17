@@ -25,13 +25,13 @@ const ProtectedBookMarkTableColumns: ColumnDef<Post>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "category_id",
+    accessorKey: "categoryId",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Category" />
     ),
     cell: ({ row }) => {
       const label = categories.find(
-        (category) => category.value === row.getValue("category_id"),
+        (category) => category.value === row.getValue("categoryId"),
       );
 
       if (!label) {
@@ -55,12 +55,12 @@ const ProtectedBookMarkTableColumns: ColumnDef<Post>[] = [
     },
   },
   {
-    accessorKey: "created_at",
+    accessorKey: "createdAt",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Created" />
     ),
     cell: ({ row }) => {
-      const date = format(new Date(row.getValue("created_at")), "MM/dd/yyyy");
+      const date = format(new Date(row.getValue("createdAt")), "MM/dd/yyyy");
 
       if (!date) {
         return null;

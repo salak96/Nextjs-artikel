@@ -1,39 +1,42 @@
-import { Database } from "./supabase";
+import type { Post, Draft, Comment, Category, Author, Bookmark, Profile, User } from "@prisma/client";
 
-export type Category = Database["public"]["Tables"]["categories"]["Row"];
-export type Author = Database["public"]["Tables"]["authors"]["Row"];
-export type Post = Database["public"]["Tables"]["posts"]["Row"];
-export type Comment = Database["public"]["Tables"]["comments"]["Row"];
-export type BookMark = Database["public"]["Tables"]["bookmarks"]["Row"];
-export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
-export type Draft = Database["public"]["Tables"]["drafts"]["Row"];
+export type { Post, Draft, Comment, Category, Author, Bookmark, Profile, User };
 
-export interface DraftWithCategory extends Omit<Draft, "categories"> {
-  categories: Category;
+export type CategoryType = Category;
+export type AuthorType = Author;
+export type PostType = Post;
+export type CommentType = Comment;
+export type BookMarkType = Bookmark;
+export type ProfileType = Profile;
+export type DraftType = Draft;
+export type UserType = User;
+
+export interface DraftWithCategory extends Omit<DraftType, "category"> {
+  category: CategoryType;
 }
 
 export interface DraftWithCategoryWithProfile
-  extends Omit<DraftWithCategory, "profiles"> {
-  profiles: Profile;
+  extends Omit<DraftWithCategory, "author"> {
+  author: AuthorType;
 }
 
-export interface PostWithCategory extends Omit<Post, "categories"> {
-  categories: Category;
+export interface PostWithCategory extends Omit<PostType, "category"> {
+  category: CategoryType;
 }
 
 export interface PostWithCategoryWithProfile
-  extends Omit<PostWithCategory, "profiles"> {
-  profiles: Profile;
+  extends Omit<PostWithCategory, "author"> {
+  author: AuthorType;
 }
 
-export interface CategoryWithPost extends Omit<Category, "posts"> {
-  posts: Post;
+export interface CategoryWithPost extends Omit<CategoryType, "posts"> {
+  posts: PostType;
 }
 
-export interface BookMarkWithPost extends Omit<BookMark, "posts"> {
-  posts: Post;
+export interface BookMarkWithPost extends Omit<BookMarkType, "post"> {
+  post: PostType;
 }
 
-export interface CommentWithProfile extends Omit<Comment, "profiles"> {
-  profiles: Profile;
+export interface CommentWithProfile extends Omit<CommentType, "post"> {
+  post: PostType;
 }

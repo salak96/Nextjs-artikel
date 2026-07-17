@@ -4,13 +4,12 @@ import { mainCategoryConfig } from "@/config/main";
 import { seoData } from "@/config/root/seo";
 import { getOgImageUrl, getUrl } from "@/lib/utils";
 import { PostWithCategoryWithProfile } from "@/types/collection";
-import type { Database } from "@/types/supabase";
-import { createClient } from "@/utils/supabase/server";
-import { Metadata } from "next";
 import { cookies } from "next/headers";
-import notFound from "next/navigation";
+import { notFound } from "next/navigation";
 import React from "react";
 import { v4 } from "uuid";
+import { prisma } from "@/lib/prisma";
+import { Metadata } from "next";
 
 interface CategoryPageProps {
   params: {
@@ -77,47 +76,52 @@ export default async function CategoryPage({
   params,
   searchParams,
 }: CategoryPageProps) {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
   // Get category by slug
   const slug = params?.slug?.join("/");
   const category = mainCategoryConfig.find(
     (category) => category.slug === slug,
   );
-  // Fetch total pages
-  const { count } = await supabase
-    .from("posts")
-    .select("*", { count: "exact", head: true })
-    .eq("category_id", category?.id ? category?.id : "");
 
   // Pagination
   const limit = 10;
-  const totalPages = count ? Math.ceil(count / limit) : 0;
   const page =
     typeof searchParams.page === "string" &&
-    +searchParams.page > 1 &&
-    +searchParams.page <= totalPages
+    +searchParams.page > 1
       ? +searchParams.page
       : 1;
-  const from = (page - 1) * limit;
-  const to = page ? from + limit : limit;
+  const skip = (page - 1) * limit;
+
+  // Fetch total pages
+  const count = await prisma.post.count({
+    where: {
+      categoryId: category?.id,
+    },
+  });
+
+  const totalPages = count ? Math.ceil(count / limit) : 0;
 
   // Fetch posts
-
   if (!category) {
-    notFound;
+    notFound();
   }
 
-  const { data, error } = await supabase
-    .from("posts")
-    .select(`*, categories(*), profiles(*)`)
-    .match({ category_id: category?.id, published: true })
-    .order("created_at", { ascending: false })
-    .range(from, to)
-    .returns<PostWithCategoryWithProfile[]>();
+  const data = await prisma.post.findMany({
+    where: {
+      categoryId: category?.id,
+    },
+    include: {
+      category: true,
+      author: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    skip: skip,
+    take: limit,
+  });
 
-  if (!data || error || !data.length) {
-    notFound;
+  if (!data || !data.length) {
+    notFound();
   }
 
   return (

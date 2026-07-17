@@ -11,7 +11,7 @@ export const defaultEditorContent = {
       content: [
         {
           type: "text",
-          text: " This is an full-stack blogging app. Built with Next.js 13 and Supabase",
+          text: " This is a full-stack blogging app. Built with Next.js, MySQL, and Prisma",
         },
       ],
     },
@@ -53,7 +53,7 @@ export const defaultEditorContent = {
     {
       type: "image",
       attrs: {
-        src: "https://iskzuogcmkzumadqjnbv.supabase.co/storage/v1/object/public/posts/banner/banners.png",
+        src: "/uploads/banner/banners.png",
         alt: "banners.png",
         title: "banners.png",
         width: null,

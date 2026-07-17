@@ -1,5 +1,4 @@
 import { ProtectedMain } from "@/components/protected/main";
-import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import React from "react";
@@ -12,12 +11,9 @@ const ProtectedLayout: React.FC<ProtectedLayoutProps> = async ({
   children,
 }) => {
   const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+  const sessionToken = cookieStore.get("session_token")?.value;
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session?.user.id) {
+  if (!sessionToken) {
     // This route can only be accessed by authenticated users.
     // Unauthenticated users will be redirected to the `/login` route.
     redirect("/login");

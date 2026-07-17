@@ -1,6 +1,6 @@
 "use client";
 
-import { CreatePost } from "@/actions/post/create-post";
+import { CreatePost } from "@/actions/images/post/create-post";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -9,50 +9,37 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { protectedPostConfig } from "@/config/protected";
-import { createClient } from "@/utils/supabase/client";
-import { Session } from "@supabase/supabase-js";
 import { Loader2 as SpinnerIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 
 const PostCreateButton = () => {
-  const supabase = createClient();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [session, setSession] = useState<Session | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
-  // Check authentitication and bookmark states
-  React.useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [session?.user.id, supabase.auth]);
+  useEffect(() => {
+    async function checkAuth() {
+      const res = await fetch("/api/auth/me", { credentials: "include" });
+      setIsAuthenticated(res.ok);
+    }
+    checkAuth();
+  }, []);
 
   async function createPost() {
     setIsLoading(true);
 
-    if (session?.user.id) {
+    if (isAuthenticated) {
       const post = {
         title: protectedPostConfig.untitled,
-        user_id: session?.user.id,
       };
 
       const response = await CreatePost(post);
 
       if (response) {
         toast.success(protectedPostConfig.successCreate);
-        // This forces a cache invalidation.
         router.refresh();
-        // Redirect to the new post
         router.push("/editor/posts/" + response.id);
         setIsLoading(false);
       } else {

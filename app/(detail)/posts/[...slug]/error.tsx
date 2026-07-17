@@ -1,6 +1,6 @@
 "use client";
 
-import { SharedError } from "@/components/shared";
+import { SharedError } from "../../../../components/shared";
 import React from "react";
 
 const Error = () => {

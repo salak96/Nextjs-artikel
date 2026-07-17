@@ -1,6 +1,6 @@
 "use client";
 
-import { UpdatePost } from "@/actions/post/update-post";
+import { UpdatePost } from "@/actions/images/post/update-post";
 import WysiwygEditor from "@/components/protected/editor/wysiwyg/wysiwyg-editor";
 import {
   AlertDialog,
@@ -36,11 +36,6 @@ import { postEditFormSchema } from "@/lib/validation/post";
 import { Draft } from "@/types/collection";
 import { PaperClipIcon } from "@heroicons/react/20/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Uppy from "@uppy/core";
-import "@uppy/core/dist/style.min.css";
-import "@uppy/dashboard/dist/style.min.css";
-import { DashboardModal } from "@uppy/react";
-import Tus from "@uppy/tus";
 import { SparklesIcon, Loader2 as SpinnerIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { FC, useState } from "react";
@@ -82,126 +77,27 @@ const Editor: FC<EditorProps> = ({
 }) => {
   const router = useRouter();
 
-  // These are the values that will be used to upload the image
   const allowedNumberOfImages = 9 - galleryImagePublicUrls.length;
-  // States
   const [isSaving, setIsSaving] = useState(false);
   const [showLoadingAlert, setShowLoadingAlert] = useState<boolean>(false);
   const [showCoverModal, setShowCoverModal] = useState<boolean>(false);
   const [showGalleryModal, setShowGalleryModal] = useState<boolean>(false);
-
-  // Editor
   const [saveStatus, setSaveStatus] = useState("Saved");
-
   const [content, setContent] = useState<string | null>(post?.content || null);
 
-  // Setup Uppy with Supabase
-  const bucketNamePosts =
-    process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET_POSTS || "posts";
-  const bucketNameCoverImage =
-    process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET_COVER_IMAGE ||
-    "cover-image";
-  const bucketNameGalleryImage =
-    process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET_GALLERY_IMAGE ||
-    "gallery-image";
-  const token = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const projectId = process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID;
-  const supabaseUploadURL = `https://${projectId}.supabase.co/storage/v1/upload/resumable`;
+  // Cover image upload state
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
 
-  // Uppy instance for cover photo upload
+  // Gallery images upload state
+  const [galleryImageFiles, setGalleryImageFiles] = useState<File[]>([]);
+  const [galleryImagePreviews, setGalleryImagePreviews] = useState<string[]>([]);
 
-  var uppyCover = new Uppy({
-    id: "cover-image",
-    autoProceed: false,
-    debug: false,
-    allowMultipleUploadBatches: true,
-    restrictions: {
-      maxFileSize: 6000000,
-      maxNumberOfFiles: 1,
-    },
-  }).use(Tus, {
-    endpoint: supabaseUploadURL,
-    headers: {
-      authorization: `Bearer ${token}`,
-    },
-    chunkSize: 6 * 1024 * 1024,
-    allowedMetaFields: [
-      "bucketName",
-      "objectName",
-      "contentType",
-      "cacheControl",
-    ],
-  });
-
-  uppyCover.on("file-added", (file) => {
-    file.meta = {
-      ...file.meta,
-      bucketName: bucketNameCoverImage,
-      objectName: `${userId}/${post.id}/${file.name}`,
-      contentType: file.type,
-    };
-  });
-
-  uppyCover.on("complete", async (result) => {
-    if (result.successful.length > 0) {
-      toast.success(protectedEditorConfig.successMessageImageUpload);
-      router.refresh();
-    } else {
-      toast.error(protectedEditorConfig.errorMessageImageUpload);
-    }
-    setShowCoverModal(false);
-  });
-
-  // Uppy instance for gallery uploads
-  var uppyGallery = new Uppy({
-    id: "gallery-image",
-    autoProceed: false,
-    debug: false,
-    allowMultipleUploadBatches: true,
-    restrictions: {
-      maxFileSize: 6000000,
-      maxNumberOfFiles: allowedNumberOfImages,
-    },
-  }).use(Tus, {
-    endpoint: supabaseUploadURL,
-    headers: {
-      authorization: `Bearer ${token}`,
-    },
-    chunkSize: 6 * 1024 * 1024,
-    allowedMetaFields: [
-      "bucketName",
-      "objectName",
-      "contentType",
-      "cacheControl",
-    ],
-  });
-
-  uppyGallery.on("file-added", (file) => {
-    file.meta = {
-      ...file.meta,
-      bucketName: bucketNameGalleryImage,
-      objectName: `${userId}/${post.id}/${file.name}`,
-      contentType: file.type,
-    };
-  });
-
-  uppyGallery.on("complete", async (result) => {
-    if (result.successful.length > 0) {
-      // Auto save post
-      toast.success(protectedEditorConfig.successMessageImageUpload);
-      router.refresh();
-    } else {
-      toast.error(protectedEditorConfig.errorMessageImageUpload);
-    }
-    setShowGalleryModal(false);
-  });
-
-  // Default values for the form
   const defaultValues: Partial<EditorFormValues> = {
     title: post.title ?? "Untitled",
     slug: post.slug ?? `post-${v4()}`,
     image: post.image ?? "",
-    categoryId: post.category_id ?? protectedEditorConfig.defaultCategoryId,
+    categoryId: post.categoryId ?? protectedEditorConfig.defaultCategoryId,
     description: post.description ?? "Post description",
     content: content ?? protectedEditorConfig.placeholderContent,
   };
@@ -237,12 +133,50 @@ const Editor: FC<EditorProps> = ({
     setShowLoadingAlert(false);
   }
 
+  const handleCoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 6000000) {
+        toast.error("File size must be less than 6MB");
+        return;
+      }
+      setCoverImageFile(file);
+      setCoverImagePreview(URL.createObjectURL(file));
+      form.setValue("image", file.name);
+    }
+  };
+
+  const handleGalleryImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > allowedNumberOfImages) {
+      toast.error(`Maximum ${allowedNumberOfImages} images allowed`);
+      return;
+    }
+    const validFiles = files.filter(f => f.size <= 6000000);
+    if (validFiles.length !== files.length) {
+      toast.error("Some files were too large (max 6MB each)");
+    }
+    setGalleryImageFiles(prev => [...prev, ...validFiles]);
+    const previews = validFiles.map(f => URL.createObjectURL(f));
+    setGalleryImagePreviews(prev => [...prev, ...previews]);
+  };
+
+  const removeCoverImage = () => {
+    setCoverImageFile(null);
+    setCoverImagePreview(null);
+    form.setValue("image", "");
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setGalleryImageFiles(prev => prev.filter((_, i) => i !== index));
+    setGalleryImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
   return (
     <>
       <Form {...form}>
-        {/* Title */}
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          {/* General information */}
+          {/* Title */}
           <Card className="max-w-2xl">
             <CardHeader>
               <CardTitle>{protectedEditorConfig.generalTitle}</CardTitle>
@@ -358,7 +292,6 @@ const Editor: FC<EditorProps> = ({
             </CardHeader>
             <Separator className="mb-8" />
             <CardContent className="space-y-4">
-              {/* Image */}
               <FormField
                 control={form.control}
                 name="image"
@@ -377,35 +310,24 @@ const Editor: FC<EditorProps> = ({
               />
 
               <div className="flex w-full flex-col">
-                <DashboardModal
-                  uppy={uppyCover}
-                  open={showCoverModal}
-                  onRequestClose={() => setShowCoverModal(false)}
-                  disablePageScrollWhenModalOpen={false}
-                  showSelectedFiles
-                  showRemoveButtonAfterComplete
-                  note={protectedEditorConfig.formImageNote}
-                  proudlyDisplayPoweredByUppy={false}
-                  showLinkToFileUploadResult
-                />
-                {coverImageFileName === "" && (
+                {coverImageFile ? (
                   <div className="col-span-full">
                     <div className="mb-1 flex items-center gap-x-3">
                       <button
-                        onClick={() => setShowCoverModal(!showCoverModal)}
                         type="button"
-                        className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                        onClick={removeCoverImage}
+                        className="inline-flex items-center rounded-md bg-red-50 px-2.5 py-1.5 text-sm font-semibold text-red-700 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-100"
                       >
-                        <PaperClipIcon className="mr-1 h-4 w-4" />
-                        <span className="">
-                          {protectedEditorConfig.formCoverImageUploadFile}
-                        </span>
+                        Remove
                       </button>
                     </div>
+                    <img
+                      src={coverImagePreview ?? undefined}
+                      alt="Cover preview"
+                      className="max-h-64 rounded-lg"
+                    />
                   </div>
-                )}
-
-                {coverImageFileName !== "" ? (
+                ) : coverImageFileName !== "" ? (
                   <EditorUploadCoverImageItem
                     userId={userId}
                     postId={post.id}
@@ -415,6 +337,23 @@ const Editor: FC<EditorProps> = ({
                 ) : (
                   <EditorUploadCoverImagePlaceHolder />
                 )}
+
+                <div className="col-span-full">
+                  <div className="mb-1 flex items-center gap-x-3">
+                    <label
+                      className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 cursor-pointer"
+                    >
+                      <PaperClipIcon className="mr-1 h-4 w-4" />
+                      <span className="">{protectedEditorConfig.formCoverImageUploadFile}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCoverImageChange}
+                        className="sr-only"
+                      />
+                    </label>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -432,39 +371,43 @@ const Editor: FC<EditorProps> = ({
             <Separator className="mb-8" />
             <CardContent className="space-y-4">
               <div className="flex w-full flex-col">
-                <DashboardModal
-                  uppy={uppyGallery}
-                  open={showGalleryModal}
-                  onRequestClose={() => setShowGalleryModal(false)}
-                  disablePageScrollWhenModalOpen={false}
-                  showSelectedFiles
-                  showRemoveButtonAfterComplete
-                  note={protectedEditorConfig.formImageNote}
-                  proudlyDisplayPoweredByUppy={false}
-                  showLinkToFileUploadResult
-                />
                 <div className="col-span-full">
                   <div className="mb-3 flex items-center gap-x-3">
-                    <button
-                      onClick={() => setShowGalleryModal(!showGalleryModal)}
-                      type="button"
-                      className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                    <label
+                      className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 cursor-pointer"
                     >
                       <PaperClipIcon className="mr-1 h-4 w-4" />
-                      <span className="">
-                        {protectedEditorConfig.chooseFile}
-                      </span>
-                    </button>
+                      <span className="">{protectedEditorConfig.chooseFile}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleGalleryImagesChange}
+                        className="sr-only"
+                      />
+                    </label>
                   </div>
                 </div>
 
-                {galleryImagePublicUrls.length > 0 ? (
-                  <EditorUploadGalleryImageTable
-                    userId={userId}
-                    postId={post.id}
-                    fileNames={galleryImageFileNames}
-                    imageUrls={galleryImagePublicUrls}
-                  />
+                {galleryImagePreviews.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {galleryImagePreviews.map((preview, index) => (
+                      <div key={index} className="relative">
+                        <img
+                          src={preview}
+                          alt={`Gallery ${index}`}
+                          className="w-full h-40 object-cover rounded-lg"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeGalleryImage(index)}
+                          className="absolute top-1 right-1 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 ) : (
                   <EditorUploadGalleryImageTableEmpty />
                 )}
@@ -484,7 +427,6 @@ const Editor: FC<EditorProps> = ({
             </CardHeader>
             <Separator className="mb-8" />
             <CardContent className="space-y-4">
-              {/* Description */}
               <FormField
                 control={form.control}
                 name="description"
@@ -513,7 +455,7 @@ const Editor: FC<EditorProps> = ({
             }}
           />
 
-          <div className="infline-flex flex items-center justify-start space-x-3">
+          <div className="inline-flex flex items-center justify-start space-x-3">
             <Button
               type="submit"
               className="flex !bg-gray-900 px-10 !text-white hover:!bg-gray-800"

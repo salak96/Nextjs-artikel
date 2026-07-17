@@ -1,5 +1,4 @@
 import { getMinutes, shimmer, toBase64 } from "@/lib/utils";
-import { createClient } from "@/utils/supabase/server";
 import { ArchiveIcon, CalendarIcon, ClockIcon } from "lucide-react";
 import { cookies } from "next/headers";
 import Image from "next/image";
@@ -7,17 +6,9 @@ import { FC } from "react";
 import { ReadTimeResults } from "reading-time";
 
 async function getPublicImageUrl(postId: string, fileName: string) {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
-  const bucketName =
-    process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET_POSTS || "posts";
-  const { data } = supabase.storage
-    .from(bucketName)
-    .getPublicUrl(`${postId}/${fileName}`);
-
-  if (data && data.publicUrl) return data.publicUrl;
-
-  return "/images/not-found.jpg";
+  // For local storage, we'll use a placeholder function
+  // In a real implementation, this would generate a URL for the local file
+  return `/uploads/posts/${postId}/${fileName}`;
 }
 
 interface DetailPostHeadingProps {

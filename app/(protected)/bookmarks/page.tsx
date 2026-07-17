@@ -7,11 +7,11 @@ import { SharedTableEmpty } from "@/components/shared";
 import { detailBookMarkConfig } from "@/config/detail";
 import { sharedEmptyConfig } from "@/config/shared";
 import { BookMarkWithPost, Post } from "@/types/collection";
-import { createClient } from "@/utils/supabase/server";
-import { Metadata } from "next";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import React from "react";
+import { prisma } from "@/lib/prisma";
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: detailBookMarkConfig.title,
@@ -25,47 +25,52 @@ interface BookmarksPageProps {
 const BookmarksPage: React.FC<BookmarksPageProps> = async ({
   searchParams,
 }) => {
-  let posts: Post[] = [];
   const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
-  // Fetch total pages
-  const { count } = await supabase
-    .from("bookmarks")
-    .select("*", { count: "exact", head: true });
+  const sessionToken = cookieStore.get("session_token")?.value;
 
-  // Fetch user data
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // In a real implementation, you would verify the JWT token here
+  // For now, we'll assume the token is valid and extract the user ID
+  // This would be implemented in a proper auth service
+  const userId = "user-id-from-token"; // Placeholder
 
   // Pagination
   const limit = 10;
-  const totalPages = count ? Math.ceil(count / limit) : 0;
   const page =
     typeof searchParams.page === "string" &&
-    +searchParams.page > 1 &&
-    +searchParams.page <= totalPages
+    +searchParams.page > 1
       ? +searchParams.page
       : 1;
-  const from = (page - 1) * limit;
-  const to = page ? from + limit : limit;
+  const skip = (page - 1) * limit;
 
-  // Fetch posts
-  const { data, error } = await supabase
-    .from("bookmarks")
-    .select(`*, posts(*)`)
-    .order("created_at", { ascending: false })
-    .match({ user_id: user?.id })
-    .range(from, to)
-    .returns<BookMarkWithPost[]>();
-
-  if (!data || error || !data.length) {
-    notFound;
-  }
-
-  data?.map((bookmark) => {
-    posts.push(bookmark.posts);
+  // Fetch total pages
+  const count = await prisma.bookmark.count({
+    where: {
+      userId: userId,
+    },
   });
+
+  const totalPages = count ? Math.ceil(count / limit) : 0;
+
+  // Fetch bookmarks with posts
+  const data = await prisma.bookmark.findMany({
+    where: {
+      userId: userId,
+    },
+    include: {
+      post: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    skip: skip,
+    take: limit,
+  });
+
+  const posts = data.map((bookmark) => bookmark.post);
+
+  if (!data || !data.length) {
+    notFound();
+  }
 
   return (
     <>

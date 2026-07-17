@@ -13,7 +13,6 @@ import {
   dashBoardSettings,
 } from "@/config/shared/dashboard";
 import { shimmer, toBase64 } from "@/lib/utils";
-import { createClient } from "@/utils/supabase/client";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -26,16 +25,17 @@ interface LoginProfileButtonProps {
 const LoginProfileButton: FC<LoginProfileButtonProps> = ({
   profileImageUrl,
 }) => {
-  const supabase = createClient();
   const router = useRouter();
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error(error);
+    const res = await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+    
+    if (res.ok) {
+      router.refresh();
     }
-
-    router.refresh();
   };
 
   return (

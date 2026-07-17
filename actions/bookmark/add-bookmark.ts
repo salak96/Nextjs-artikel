@@ -1,34 +1,46 @@
 "use server";
 
-import { bookmarkSchema } from "@/lib/validation/bookmark";
-import { Database } from "@/types/supabase";
-import { createClient } from "@/utils/supabase/server";
-import { cookies } from "next/headers";
+import { bookmarkCreateSchema } from "@/lib/validation/bookmark";
+import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
 import * as z from "zod";
 
-export async function AddBookmark(context: z.infer<typeof bookmarkSchema>) {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+export async function AddBookmark(context: z.infer<typeof bookmarkCreateSchema>) {
   try {
-    const bookmark = bookmarkSchema.parse(context);
-    const { data, error } = await supabase
-      .from("bookmarks")
-      .insert({
-        id: bookmark.id,
-        user_id: bookmark.user_id,
-      })
-      .single();
-
-    if (error) {
-      console.log(error);
+    const session = await getSession();
+    if (!session) {
       return false;
     }
+
+    const bookmark = bookmarkCreateSchema.parse(context);
+    
+    const existing = await prisma.bookmark.findUnique({
+      where: {
+        userId_postId: {
+          userId: session.userId,
+          postId: bookmark.postId,
+        },
+      },
+    });
+
+    if (existing) {
+      return false;
+    }
+
+    const data = await prisma.bookmark.create({
+      data: {
+        userId: session.userId,
+        postId: bookmark.postId,
+      },
+    });
+
     return true;
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.log(error);
       return false;
     }
+    console.log(error);
     return false;
   }
 }

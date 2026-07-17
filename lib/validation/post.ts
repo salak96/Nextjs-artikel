@@ -2,7 +2,6 @@ import z from "zod";
 
 export const postDeleteSchema = z.object({
   id: z.string(),
-  user_id: z.string(),
 });
 
 export const postSlugSchema = z.object({
@@ -11,7 +10,6 @@ export const postSlugSchema = z.object({
 
 export const postCreateSchema = z.object({
   title: z.string(),
-  user_id: z.string(),
 });
 
 export const postParamSchema = z.object({

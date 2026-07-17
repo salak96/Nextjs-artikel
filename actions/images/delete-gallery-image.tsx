@@ -1,32 +1,27 @@
 "use server";
 
 import { imageDeleteSchema } from "@/lib/validation/image";
-import { Database } from "@/types/supabase";
-import { createClient } from "@/utils/supabase/server";
-import { cookies } from "next/headers";
+import { getSession } from "@/lib/auth";
 import * as z from "zod";
+import { unlink } from "fs/promises";
+import { join } from "path";
 
 export async function DeleteGalleryImage(
   context: z.infer<typeof imageDeleteSchema>,
 ) {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
   try {
-    const { userId, postId, fileName } = imageDeleteSchema.parse(context);
-    const bucketName =
-      process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET_GALLERY_IMAGE ||
-      "gallery-image";
+    const session = await getSession();
+    if (!session) return false;
 
-    const { data, error } = await supabase.storage
-      .from(bucketName)
-      .remove([`${userId}/${postId}/${fileName}`]);
-
-    if (error) {
-      console.log(error);
-    }
-    if (data?.length && data?.length > 0) {
+    const { postId, fileName } = imageDeleteSchema.parse(context);
+    
+    const filePath = join(process.cwd(), "public", "uploads", session.userId, postId, fileName);
+    
+    try {
+      await unlink(filePath);
       return true;
-    } else {
+    } catch (error) {
+      console.log("File not found or error deleting:", error);
       return false;
     }
   } catch (error) {

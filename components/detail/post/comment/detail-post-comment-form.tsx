@@ -51,7 +51,6 @@ const DetailPostCommentForm: React.FC<DetailPostCommentFormProps> = ({
 
     const formData = {
       postId: postId,
-      userId: userId,
       comment: data.comment,
     };
 

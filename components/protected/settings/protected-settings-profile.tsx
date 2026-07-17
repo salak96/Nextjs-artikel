@@ -30,13 +30,7 @@ import { protectedProfileConfig } from "@/config/protected";
 import { shimmer, toBase64 } from "@/lib/utils";
 import { profileFormSchema } from "@/lib/validation/profile";
 import { Profile } from "@/types/collection";
-import { createClient } from "@/utils/supabase/client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Uppy from "@uppy/core";
-import "@uppy/core/dist/style.min.css";
-import "@uppy/dashboard/dist/style.min.css";
-import { DashboardModal } from "@uppy/react";
-import Tus from "@uppy/tus";
 import { Loader2 as SpinnerIcon } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -51,92 +45,21 @@ interface ProtectedSettingsProfileProps {
   user: Profile;
 }
 
-async function downloadImage(
-  bucketName: string,
-  userId: string,
-  fileName: string,
-) {
-  const supabase = createClient();
-  const { data } = supabase.storage
-    .from(bucketName)
-    .getPublicUrl(`${userId}/${fileName}`);
-
-  if (data.publicUrl) {
-    return data.publicUrl;
-  }
-
-  return null;
-}
-
 const ProtectedSettingsProfile: FC<ProtectedSettingsProfileProps> = ({
   user,
 }) => {
   const router = useRouter();
 
-  // Setup Uppy with Supabase
   const [showModal, setShowModal] = useState<boolean>(false);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(
-    user.avatar_url || user.avatar_url !== "" ? user.avatar_url : null,
+    user.avatarUrl || user.avatarUrl !== "" ? user.avatarUrl : null,
   );
-  const bucketName =
-    process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET_PROFILE || "profile";
-  const token = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const projectId = process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID;
-  const supabaseUploadURL = `https://${projectId}.supabase.co/storage/v1/upload/resumable`;
 
-  // Uppy instance for cover photo upload
-  var uppy = new Uppy({
-    id: "avatar",
-    autoProceed: false,
-    debug: true,
-    allowMultipleUploadBatches: true,
-    restrictions: {
-      maxFileSize: 6000000,
-      maxNumberOfFiles: 1,
-    },
-  }).use(Tus, {
-    endpoint: supabaseUploadURL,
-    headers: {
-      authorization: `Bearer ${token}`,
-    },
-    chunkSize: 6 * 1024 * 1024,
-    allowedMetaFields: [
-      "bucketName",
-      "objectName",
-      "contentType",
-      "cacheControl",
-    ],
-  });
-
-  uppy.on("file-added", (file) => {
-    file.meta = {
-      ...file.meta,
-      bucketName: bucketName,
-      objectName: `${user.id}/${file.name}`,
-      contentType: file.type,
-    };
-  });
-
-  uppy.on("complete", async (result) => {
-    if (result.successful.length > 0) {
-      const avatarUrl = await downloadImage(
-        bucketName,
-        user.id,
-        result.successful[0].name,
-      );
-      setAvatarUrl(avatarUrl);
-      toast.success(protectedProfileConfig.successMessageImageUpload);
-    } else {
-      toast.error(protectedProfileConfig.errorMessageImageUpload);
-    }
-    setShowModal(false);
-  });
-
-  // This can come from your database or API.
+  // Default values for the form
   const defaultValues: Partial<ProfileFormValues> = {
-    firstName: user.full_name?.split(" ")[0] || "",
-    lastName: user.full_name?.split(" ")[1] || "",
+    firstName: user.fullName?.split(" ")[0] || "",
+    lastName: user.fullName?.split(" ")[1] || "",
     userName: user.username || "",
     website: user.website || "",
   };
@@ -210,17 +133,6 @@ const ProtectedSettingsProfile: FC<ProtectedSettingsProfileProps> = ({
                       {protectedProfileConfig.uploadNote}
                     </p>
                   </div>
-                  <DashboardModal
-                    uppy={uppy}
-                    open={showModal}
-                    onRequestClose={() => setShowModal(false)}
-                    disablePageScrollWhenModalOpen={false}
-                    showSelectedFiles
-                    showRemoveButtonAfterComplete
-                    note={protectedProfileConfig.formImageNote}
-                    proudlyDisplayPoweredByUppy={false}
-                    showLinkToFileUploadResult
-                  />
                 </div>
               </div>
               <FormField
@@ -280,7 +192,9 @@ const ProtectedSettingsProfile: FC<ProtectedSettingsProfileProps> = ({
                     <FormLabel>{protectedProfileConfig.userName}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder={protectedProfileConfig.userNamePlaceholder}
+                        placeholder={
+                          protectedProfileConfig.userNamePlaceholder
+                        }
                         {...field}
                         className="max-w-md"
                       />
@@ -315,7 +229,9 @@ const ProtectedSettingsProfile: FC<ProtectedSettingsProfileProps> = ({
                     <FormLabel>{protectedProfileConfig.website}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder={protectedProfileConfig.websitePlaceholder}
+                        placeholder={
+                          protectedProfileConfig.websitePlaceholder
+                        }
                         {...field}
                         className="max-w-md"
                       />

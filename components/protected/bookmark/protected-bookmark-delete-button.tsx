@@ -12,8 +12,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { detailBookMarkConfig } from "@/config/detail";
-import { createClient } from "@/utils/supabase/client";
-import { Session } from "@supabase/supabase-js";
 import { Loader2 as SpinnerIcon, Trash as TrashIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -29,34 +27,16 @@ interface ProtectedBookmarkDeleteButtonProps {
 const ProtectedBookmarkDeleteButton: React.FC<
   ProtectedBookmarkDeleteButtonProps
 > = ({ id }) => {
-  const supabase = createClient();
   const router = useRouter();
   const [showDeleteAlert, setShowDeleteAlert] = useState<boolean>(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
-  const [session, setSession] = React.useState<Session | null>(null);
-
-  // Check authentitication and bookmark states
-  React.useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [id, session?.user.id, supabase.auth]);
 
   // Delete a bookmark
   async function deleteBookmark() {
     setIsDeleteLoading(true);
-    if (id && session?.user.id) {
+    if (id) {
       const savedPostData = {
         id: id,
-        user_id: session?.user.id,
       };
       const response = await DeleteBookmark(savedPostData);
       if (response) {

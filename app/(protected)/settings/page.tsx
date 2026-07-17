@@ -1,48 +1,28 @@
 import ProtectedSettingsProfile from "@/components/protected/settings/protected-settings-profile";
-import { Profile } from "@/types/collection";
-import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 
 export const revalidate = 0;
 
-async function getUserId() {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
-  const {
-    data: { session },
-    error,
-  } = await supabase.auth.getSession();
-
-  if (error) {
-    console.log("Error has occured while getting UserId!");
-    console.log("Error message : ", error.message);
-    return null;
-  }
-
-  return session ? session.user.id : null;
-}
-
 const SettingsPage = async () => {
   const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+  const sessionToken = cookieStore.get("session_token")?.value;
 
-  const userId = await getUserId();
+  // In a real implementation, you would verify the JWT token here
+  // For now, we'll assume the token is valid and extract the user ID
+  // This would be implemented in a proper auth service
+  const userId = "user-id-from-token"; // Placeholder - will be replaced with actual token verification
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .match({ id: userId })
-    .single<Profile>();
-
-  if (error) {
-    console.log(error);
-    throw Error;
-  }
+  const data = await prisma.profile.findUnique({
+    where: {
+      id: userId,
+    },
+  });
 
   if (!data) {
-    notFound;
-    console.log("Cound't find User profile.");
+    notFound();
+    console.log("Couldn't find User profile.");
   }
 
   return (

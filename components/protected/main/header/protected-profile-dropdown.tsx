@@ -8,56 +8,37 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { dashBoardLogout, dashBoardProfile } from "@/config/shared/dashboard";
 import { shimmer, toBase64 } from "@/lib/utils";
-import { Profile } from "@/types/collection";
-import { createClient } from "@/utils/supabase/client";
-import { Session } from "@supabase/supabase-js";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const ProtectedProfileDropDown = () => {
-  const supabase = createClient();
   const router = useRouter();
-  const [session, setSession] = useState<Session | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string>("");
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error(error);
+    const res = await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+    if (res.ok) {
+      router.refresh();
     }
-
-    router.refresh();
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [supabase.auth]);
-
-  useEffect(() => {
     async function fetchAvatar() {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .match({ id: session?.user.id })
-        .single<Profile>();
-      if (data) {
-        setAvatarUrl(data.avatar_url ? data.avatar_url : "");
+      const res = await fetch("/api/auth/me", { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.user?.avatarUrl) {
+          setAvatarUrl(data.user.avatarUrl);
+        }
       }
     }
     fetchAvatar();
-  }, [session, supabase]);
+  }, []);
 
   return (
     <>
@@ -93,7 +74,7 @@ const ProtectedProfileDropDown = () => {
             className="group inline-flex w-full items-center rounded-md bg-white px-3 py-2.5 hover:bg-gray-100"
           >
             <dashBoardLogout.icon className="mr-2 h-4 w-4 text-gray-500 group-hover:text-gray-900" />
-            <span className="group-hover:text-gray-90 text-sm text-gray-500 group-hover:text-gray-900">
+            <span className="group-hover:text-gray-90 text-sm text-gray-500">
               {dashBoardLogout.title}
             </span>
           </button>

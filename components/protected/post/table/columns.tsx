@@ -25,13 +25,13 @@ export const columns: ColumnDef<Draft>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "category_id",
+    accessorKey: "categoryId",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Category" />
     ),
     cell: ({ row }) => {
       const label = categories.find(
-        (category) => category.value === row.original.category_id,
+        (category) => category.value === row.original.categoryId,
       );
 
       if (!label) {
@@ -82,12 +82,12 @@ export const columns: ColumnDef<Draft>[] = [
     },
   },
   {
-    accessorKey: "created_at",
+    accessorKey: "createdAt",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Created" />
     ),
     cell: ({ row }) => {
-      const date = format(new Date(row.getValue("created_at")), "MM/dd/yyyy");
+      const date = format(new Date(row.getValue("createdAt")), "MM/dd/yyyy");
 
       if (!date) {
         return null;

@@ -1,44 +1,33 @@
 import { mainPostConfig } from "@/config/main";
 import { getMinutes, shimmer, toBase64 } from "@/lib/utils";
 import { Comment, PostWithCategoryWithProfile } from "@/types/collection";
-import { createClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
 import { format, parseISO } from "date-fns";
 import { CalendarIcon, Clock10Icon, MessageCircleIcon } from "lucide-react";
-import { cookies } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import readingTime from "reading-time";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 async function getPublicImageUrl(postId: string, fileName: string) {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
-  const bucketName =
-    process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET_POSTS || "posts";
-  const { data } = supabase.storage
-    .from(bucketName)
-    .getPublicUrl(`${postId}/${fileName}`);
-
-  if (data && data.publicUrl) return data.publicUrl;
-
-  return "/images/not-found.jpg";
+  // For local storage, we'll use a placeholder function
+  // In a real implementation, this would generate a URL for the local file
+  return `/uploads/posts/${postId}/${fileName}`;
 }
 
 async function getComments(postId: string) {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
-  const { data: comments, error } = await supabase
-    .from("comments")
-    .select()
-    .eq("post_id", postId)
-    .order("created_at", { ascending: true })
-    .returns<Comment[]>();
+  const comments = await prisma.comment.findMany({
+    where: {
+      postId: postId,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
 
-  if (error) {
-    console.error(error.message);
-  }
   return comments;
 }
 
@@ -75,7 +64,7 @@ const MainPostItem: React.FC<MainPostItemProps> = async ({ post }) => {
                 {/* Desktop category view */}
                 <div className="hidden items-center gap-x-3 text-sm sm:flex">
                   <span className="relative z-10 rounded-full bg-gray-100 px-3 py-1.5 font-medium text-gray-600 hover:bg-gray-200">
-                    {post.categories?.title}
+                    {post.category?.title}
                   </span>
                 </div>
 
@@ -88,13 +77,13 @@ const MainPostItem: React.FC<MainPostItemProps> = async ({ post }) => {
                   <div className="mt-2 flex items-center gap-x-3 text-sm sm:hidden">
                     <div className="inline-flex items-center text-gray-500">
                       <span className="relative z-10 rounded-full bg-gray-100 px-3 py-1.5 font-medium text-gray-600 hover:bg-gray-200">
-                        {post.categories?.title}
+{post.category?.title}
                       </span>
                     </div>
                     <div className="inline-flex items-center text-gray-500">
                       <CalendarIcon className="h-4 w-4" />
                       <span className="ml-1">
-                        {format(parseISO(post.updated_at!), "dd/MM/yyyy")}
+                        {format(new Date(post.updatedAt!), "dd/MM/yyyy")}
                       </span>
                     </div>
                     <div className="inline-flex items-center text-gray-500">
@@ -112,7 +101,7 @@ const MainPostItem: React.FC<MainPostItemProps> = async ({ post }) => {
                     <div className="inline-flex items-center text-gray-500">
                       <CalendarIcon className="h-4 w-4" />
                       <span className="ml-1">
-                        {format(parseISO(post.updated_at!), "MMMM dd, yyyy")}
+                        {format(new Date(post.updatedAt!), "MMMM dd, yyyy")}
                       </span>
                     </div>
                     <div className="inline-flex items-center text-gray-500">
@@ -131,8 +120,8 @@ const MainPostItem: React.FC<MainPostItemProps> = async ({ post }) => {
                 <div className="mt-3 flex border-t border-gray-900/5 pt-2">
                   <div className="relative flex items-center gap-x-2">
                     <Image
-                      src={post.profiles?.avatar_url ?? "/images/avatar.png"}
-                      alt={post.profiles?.full_name ?? "Avatar"}
+                      src={post.author?.image ?? "/images/avatar.png"}
+                      alt={post.author?.name ?? "Avatar"}
                       height={40}
                       width={40}
                       priority
@@ -143,7 +132,7 @@ const MainPostItem: React.FC<MainPostItemProps> = async ({ post }) => {
                     />
                     <div className="text-sm">
                       <p className="font-semibold text-gray-900">
-                        {post.profiles.full_name}
+                        {post.author?.name}
                       </p>
                       <p className="text-gray-600">{mainPostConfig.author}</p>
                     </div>

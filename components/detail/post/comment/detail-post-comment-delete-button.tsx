@@ -12,11 +12,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { detailCommentConfig } from "@/config/detail";
-import { createClient } from "@/utils/supabase/client";
-import { Session } from "@supabase/supabase-js";
 import { Loader2 as SpinnerIcon, Trash as TrashIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { FC, useState } from "react";
+import React, { FC, useState, useEffect } from "react";
 import toast from "react-hot-toast";
 
 export const dynamic = "force-dynamic";
@@ -31,34 +29,25 @@ const DetailPostCommentDeleteButton: FC<DetailPostCommentDeleteButtonProps> = ({
   id = "",
   userId = "",
 }) => {
-  const supabase = createClient();
   const router = useRouter();
   const [showDeleteAlert, setShowDeleteAlert] = useState<boolean>(false);
   const [isDeleteLoading, setIsDeleteLoading] = useState<boolean>(false);
-  const [session, setSession] = React.useState<Session | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
-  // Check authentitication and bookmark states
-  React.useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
+  useEffect(() => {
+    async function checkAuth() {
+      const res = await fetch("/api/auth/me", { credentials: "include" });
+      setIsAuthenticated(res.ok);
+    }
+    checkAuth();
+  }, [id, userId]);
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [id, session?.user.id, supabase.auth]);
-
-  // Delete bookmark
+  // Delete comment
   async function deleteComment() {
     setIsDeleteLoading(true);
-    if (id && session?.user.id && userId === session?.user.id) {
+    if (id && isAuthenticated) {
       const commentData = {
         id: id,
-        userId: session?.user.id,
       };
       const response = await DeleteComment(commentData);
       if (response) {
@@ -77,7 +66,7 @@ const DetailPostCommentDeleteButton: FC<DetailPostCommentDeleteButtonProps> = ({
 
   return (
     <>
-      {session?.user.id === userId && (
+      {isAuthenticated && userId && (
         <>
           <div className="flex flex-shrink-0 self-center">
             <div className="relative inline-block text-left">
