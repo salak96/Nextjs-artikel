@@ -22,15 +22,15 @@ const DetailPostCommentItem: React.FC<DetailPostCommentItemProps> = ({
   userId,
 }) => {
   return (
-    <div className="my-6 flex flex-col rounded-md bg-white p-4 text-sm text-gray-500 shadow-sm ring-1 ring-black/5">
+    <div className="my-4 rounded-lg border border-border bg-background p-4">
       <div className="flex space-x-3">
         <div className="flex-shrink-0">
           <Avatar>
             <AvatarImage src={image} alt="Avatar" />
             <AvatarFallback>
-              <span className="inline-block h-full w-full overflow-hidden rounded-full bg-gray-100">
+              <span className="inline-block h-full w-full overflow-hidden rounded-full bg-muted">
                 <svg
-                  className="h-full w-full text-gray-300"
+                  className="h-full w-full text-muted-foreground"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -41,14 +41,14 @@ const DetailPostCommentItem: React.FC<DetailPostCommentItemProps> = ({
           </Avatar>
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-gray-900">{name}</p>
-          <p className="text-sm text-gray-500">{moment(date).fromNow()}</p>
+          <p className="text-sm font-semibold text-card-foreground">{name}</p>
+          <p className="text-sm text-muted-foreground">{moment(date).fromNow()}</p>
         </div>
         <DetailPostCommentDeleteButton id={id} userId={userId} />
       </div>
-      <Separator className="mb-4 mt-2" />
+      <Separator className="mb-3 mt-2" />
       <div
-        className="prose prose-sm max-w-none text-gray-500"
+        className="prose prose-sm max-w-none text-card-foreground dark:prose-invert"
         dangerouslySetInnerHTML={{ __html: comment }}
       />
     </div>

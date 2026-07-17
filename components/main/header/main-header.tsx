@@ -2,9 +2,9 @@ import { MainDesktopNavigation, MainMobileNavigation } from "./navigations";
 
 export default function MainHeader() {
   return (
-    <div className="border-y-1 sticky top-0 z-50 border-black/5 bg-gray-50/60 shadow-sm shadow-gray-300 backdrop-blur-lg">
+    <header className="sticky top-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-xl">
       <MainDesktopNavigation />
       <MainMobileNavigation />
-    </div>
+    </header>
   );
 }

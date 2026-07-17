@@ -1,23 +1,18 @@
 import { mainPageTermsConfig } from "@/config/main/pages";
-import React from "react";
 
 const MainTermsPage = () => {
   return (
-    <div className="bg-white py-5">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl">
-          <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            {mainPageTermsConfig.title}
-          </p>
+    <div className="py-10">
+      <div className="mx-auto max-w-2xl">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+          {mainPageTermsConfig.title}
+        </h1>
 
-          {mainPageTermsConfig.paragraphs.map((item) => (
-            <>
-              <p className="text-md mt-8 leading-8 text-gray-600">
-                {item.description}
-              </p>
-            </>
-          ))}
-        </div>
+        {mainPageTermsConfig.paragraphs.map((item, i) => (
+          <p key={i} className="mt-6 text-base leading-7 text-muted-foreground">
+            {item.description}
+          </p>
+        ))}
       </div>
     </div>
   );

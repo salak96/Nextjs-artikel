@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { mainPageContactConfig } from "@/config/main/pages";
 import { contactFormSchema } from "@/lib/validation/contact";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 as SpinnerIcon } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-hot-toast";
@@ -39,12 +39,9 @@ const MainContactPage = () => {
   async function onSubmit(data: ContactFormValues) {
     try {
       setIsLoading(true);
-      // Send email using Nodemailer
       const response = await fetch("/api/contact", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: data.name,
           email: data.email,
@@ -58,41 +55,37 @@ const MainContactPage = () => {
         return toast.error(mainPageContactConfig.error);
       }
     } catch (error) {
-      // Handle error
       console.error(mainPageContactConfig.error, error);
     } finally {
       setIsLoading(false);
       toast.success(mainPageContactConfig.emailSent);
     }
   }
+
   return (
-    <>
+    <div className="py-10">
       <div className="mx-auto max-w-2xl text-center">
-        <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+        <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
           Contact us
         </h2>
-        <p className="mt-2 text-lg leading-8 text-gray-600">
+        <p className="mt-2 text-lg leading-8 text-muted-foreground">
           Get in touch with us anytime, through email.
         </p>
       </div>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="mx-auto my-10 space-y-4 text-center"
+          className="mx-auto my-10 max-w-md space-y-4"
         >
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-gray-600">
-                  {mainPageContactConfig.name}
-                </FormLabel>
-                <div className="mx-auto flex w-full max-w-md space-x-2">
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                </div>
+                <FormLabel>{mainPageContactConfig.name}</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -102,14 +95,10 @@ const MainContactPage = () => {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-gray-600">
-                  {mainPageContactConfig.email}
-                </FormLabel>
-                <div className="mx-auto flex w-full max-w-md space-x-2">
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                </div>
+                <FormLabel>{mainPageContactConfig.email}</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -119,28 +108,21 @@ const MainContactPage = () => {
             name="message"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-gray-600">
-                  {mainPageContactConfig.message}
-                </FormLabel>
-                <div className="mx-auto flex w-full max-w-md space-x-2 bg-white">
-                  <FormControl>
-                    <Textarea className="resize-none" {...field} />
-                  </FormControl>
-                </div>
+                <FormLabel>{mainPageContactConfig.message}</FormLabel>
+                <FormControl>
+                  <Textarea className="resize-none" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <Button
-            type="submit"
-            className=" w-full max-w-sm items-center justify-center rounded-lg bg-gray-600 bg-gradient-to-t from-gray-200 via-gray-100 to-gray-50 px-3 py-2 text-sm text-gray-500 shadow-md shadow-black/5 ring-1 ring-black/10 transition duration-200 hover:bg-gradient-to-tr hover:from-gray-200 hover:via-gray-100 hover:to-gray-50 active:scale-[96%] active:ring-black/20"
-          >
-            {isLoading && <SpinnerIcon className="mr-2 h-4 w-4 animate-spin" />}
+          <Button type="submit" className="w-full">
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {mainPageContactConfig.send}
           </Button>
         </form>
       </Form>
-    </>
+    </div>
   );
 };
 

@@ -3,6 +3,7 @@
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -32,75 +33,55 @@ const LoginProfileButton: FC<LoginProfileButtonProps> = ({
       method: "POST",
       credentials: "include",
     });
-    
+
     if (res.ok) {
       router.refresh();
     }
   };
 
   return (
-    <div className="flex sm:ml-4 sm:mt-0">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="overflow-hidden rounded-full ring-2 ring-border transition-colors hover:ring-ring">
           <Image
             src={profileImageUrl || "/images/user-placeholder.png"}
             alt="Avatar"
-            height={40}
-            width={40}
-            className="h-[40px] w-[40px] rounded-full"
+            height={32}
+            width={32}
+            className="h-8 w-8 object-cover"
             priority
-            placeholder={`data:image/svg+xml;base64,${toBase64(
-              shimmer(40, 40),
-            )}`}
+            placeholder={`data:image/svg+xml;base64,${toBase64(shimmer(32, 32))}`}
           />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56 font-sans">
-          <Link
-            href={dashBoardPost.slug || ""}
-            className="group inline-flex w-full items-center rounded-md bg-white px-3 py-1.5 hover:bg-gray-100"
-          >
-            <dashBoardPost.icon className="mr-2 h-4 w-4 text-gray-500 group-hover:text-gray-900" />
-            <span className="text-sm text-gray-500 group-hover:text-gray-900">
-              {dashBoardPost.title}
-            </span>
-          </Link>
-          <DropdownMenuSeparator />
-
-          <Link
-            href={dashBoardBookMark.slug || ""}
-            className="group inline-flex w-full items-center rounded-md bg-white px-3 py-1.5 hover:bg-gray-100"
-          >
-            <dashBoardBookMark.icon className="mr-2 h-4 w-4 text-gray-500 group-hover:text-gray-900" />
-            <span className="text-sm text-gray-500 group-hover:text-gray-900">
-              {dashBoardBookMark.title}
-            </span>
-          </Link>
-          <DropdownMenuSeparator />
-
-          <Link
-            href={dashBoardSettings.slug || ""}
-            className="group inline-flex w-full items-center rounded-md bg-white px-3 py-1.5 hover:bg-gray-100"
-          >
-            <dashBoardSettings.icon className="mr-2 h-4 w-4 text-gray-500 group-hover:text-gray-900" />
-            <span className="text-sm text-gray-500 group-hover:text-gray-900">
-              {dashBoardSettings.title}
-            </span>
-          </Link>
-          <DropdownMenuSeparator />
-
-          <button
-            onClick={signOut}
-            type="button"
-            className="group inline-flex w-full items-center rounded-md bg-white px-3 py-1.5 hover:bg-gray-100"
-          >
-            <dashBoardLogout.icon className="mr-2 h-4 w-4 text-gray-500 group-hover:text-gray-900" />
-            <span className="group-hover:text-gray-90 text-sm text-gray-500">
-              {dashBoardLogout.title}
-            </span>
-          </button>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56">
+        <Link href={dashBoardPost.slug || ""}>
+          <DropdownMenuItem className="cursor-pointer">
+            <dashBoardPost.icon className="mr-2 h-4 w-4" />
+            <span>{dashBoardPost.title}</span>
+          </DropdownMenuItem>
+        </Link>
+        <DropdownMenuSeparator />
+        <Link href={dashBoardBookMark.slug || ""}>
+          <DropdownMenuItem className="cursor-pointer">
+            <dashBoardBookMark.icon className="mr-2 h-4 w-4" />
+            <span>{dashBoardBookMark.title}</span>
+          </DropdownMenuItem>
+        </Link>
+        <DropdownMenuSeparator />
+        <Link href={dashBoardSettings.slug || ""}>
+          <DropdownMenuItem className="cursor-pointer">
+            <dashBoardSettings.icon className="mr-2 h-4 w-4" />
+            <span>{dashBoardSettings.title}</span>
+          </DropdownMenuItem>
+        </Link>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={signOut} className="cursor-pointer">
+          <dashBoardLogout.icon className="mr-2 h-4 w-4" />
+          <span>{dashBoardLogout.title}</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 

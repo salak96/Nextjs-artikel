@@ -1,33 +1,22 @@
 import { mainPostConfig } from "@/config/main";
 import { getMinutes, shimmer, toBase64 } from "@/lib/utils";
-import { Comment, PostWithCategoryWithProfile } from "@/types/collection";
-import { cookies } from "next/headers";
-import { format, parseISO } from "date-fns";
-import { CalendarIcon, Clock10Icon, MessageCircleIcon } from "lucide-react";
+import { PostWithCategoryWithProfile } from "@/types/collection";
+import { format } from "date-fns";
+import { Calendar, Clock, MessageSquare } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
 import readingTime from "reading-time";
 import { prisma } from "@/lib/prisma";
 
-export const dynamic = "force-dynamic";
-
 async function getPublicImageUrl(postId: string, fileName: string) {
-  // For local storage, we'll use a placeholder function
-  // In a real implementation, this would generate a URL for the local file
   return `/uploads/posts/${postId}/${fileName}`;
 }
 
 async function getComments(postId: string) {
   const comments = await prisma.comment.findMany({
-    where: {
-      postId: postId,
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
+    where: { postId },
+    orderBy: { createdAt: "asc" },
   });
-
   return comments;
 }
 
@@ -36,114 +25,84 @@ interface MainPostItemProps {
 }
 
 const MainPostItem: React.FC<MainPostItemProps> = async ({ post }) => {
-  const readTime = readingTime(post.content ? post.content : "");
-  const comments = await getComments(post.id ? post.id : "");
+  const readTime = readingTime(post.content || "");
+  const comments = await getComments(post.id || "");
 
   return (
-    <>
-      <div className="group relative w-full rounded-2xl bg-white/20 p-2.5 shadow-sm shadow-black/5 ring-[0.8px] ring-black/5 transition duration-200 hover:-translate-y-1">
-        <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 opacity-[0.15] blur-lg"></div>
-        <div className="relative max-w-full rounded-[0.62rem] shadow-sm shadow-black/5 ring-[0.8px] ring-black/5">
-          <Link href={`/posts/${post.slug}`}>
-            <article className="relative isolate flex max-w-3xl flex-col gap-2 rounded-lg bg-white px-5 py-5 shadow-md shadow-gray-300 ring-1 ring-black/5 sm:gap-8 sm:px-10 sm:py-6 lg:flex-row">
-              <div className="relative aspect-[16/9] sm:aspect-[2/1] lg:aspect-square lg:w-64 lg:shrink-0">
+    <Link href={`/posts/${post.slug}`} className="group block">
+      <article className="relative overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:shadow-lg hover:shadow-primary/5">
+        <div className="flex flex-col sm:flex-row">
+          {post.image && (
+            <div className="relative aspect-[16/9] overflow-hidden sm:w-72 sm:shrink-0 sm:self-stretch">
+              <Image
+                src={await getPublicImageUrl(post.id, post.image)}
+                alt={post.title ?? "Cover"}
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                placeholder={`data:image/svg+xml;base64,${toBase64(shimmer(400, 300))}`}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent sm:bg-gradient-to-r sm:from-black/20 sm:to-transparent" />
+              <div className="absolute left-3 top-3">
+                <span className="rounded-full bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground">
+                  {post.category?.title}
+                </span>
+              </div>
+            </div>
+          )}
+          <div className="flex flex-1 flex-col justify-center p-5">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+              {!post.image && (
+                <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                  {post.category?.title}
+                </span>
+              )}
+              <span className="flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5" />
+                {format(new Date(post.updatedAt!), "MMM dd, yyyy")}
+              </span>
+              <span className="flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5" />
+                {getMinutes(readTime.minutes)}
+              </span>
+              <span className="flex items-center gap-1">
+                <MessageSquare className="h-3.5 w-3.5" />
+                {comments.length}
+              </span>
+            </div>
+
+            <h3 className="mt-3 text-lg font-semibold leading-snug text-card-foreground transition-colors group-hover:text-primary">
+              {post.title}
+            </h3>
+
+            {post.description && (
+              <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+                {post.description}
+              </p>
+            )}
+
+            {post.author && (
+              <div className="mt-4 flex items-center gap-3 border-t border-border pt-4">
                 <Image
-                  src={await getPublicImageUrl(post.id, post.image || "")}
-                  alt={post.title ?? "Cover"}
-                  height={256}
-                  width={256}
-                  priority
-                  placeholder={`data:image/svg+xml;base64,${toBase64(
-                    shimmer(256, 256),
-                  )}`}
-                  className="absolute inset-0 h-full w-full rounded-2xl bg-gray-50 object-cover"
+                  src={post.author.image ?? "/images/user-placeholder.png"}
+                  alt={post.author.name ?? "Author"}
+                  width={36}
+                  height={36}
+                  className="h-9 w-9 rounded-full object-cover ring-2 ring-border"
                 />
-                <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-gray-900/10" />
-              </div>
-              <div>
-                {/* Desktop category view */}
-                <div className="hidden items-center gap-x-3 text-sm sm:flex">
-                  <span className="relative z-10 rounded-full bg-gray-100 px-3 py-1.5 font-medium text-gray-600 hover:bg-gray-200">
-                    {post.category?.title}
-                  </span>
-                </div>
-
-                <div className="group relative max-w-xl">
-                  <h3 className="mt-3 text-lg font-semibold leading-6 text-gray-900 group-hover:text-gray-600">
-                    <span className="absolute inset-0" />
-                    {post.title}
-                  </h3>
-                  {/* Mobile category and toolbar view*/}
-                  <div className="mt-2 flex items-center gap-x-3 text-sm sm:hidden">
-                    <div className="inline-flex items-center text-gray-500">
-                      <span className="relative z-10 rounded-full bg-gray-100 px-3 py-1.5 font-medium text-gray-600 hover:bg-gray-200">
-{post.category?.title}
-                      </span>
-                    </div>
-                    <div className="inline-flex items-center text-gray-500">
-                      <CalendarIcon className="h-4 w-4" />
-                      <span className="ml-1">
-                        {format(new Date(post.updatedAt!), "dd/MM/yyyy")}
-                      </span>
-                    </div>
-                    <div className="inline-flex items-center text-gray-500">
-                      <Clock10Icon className="h-4 w-4" />
-                      <span className="ml-1">
-                        {getMinutes(readTime.minutes ? readTime.minutes : 0)}
-                      </span>
-                    </div>
-                  </div>
-                  <p className="mt-3 text-sm leading-6 text-gray-600">
-                    {post.description}
+                <div className="text-sm">
+                  <p className="font-medium text-card-foreground">
+                    {post.author.name}
                   </p>
-                  {/* Desktop toolbar view */}
-                  <div className="mt-3 hidden items-center gap-x-3 text-sm sm:flex">
-                    <div className="inline-flex items-center text-gray-500">
-                      <CalendarIcon className="h-4 w-4" />
-                      <span className="ml-1">
-                        {format(new Date(post.updatedAt!), "MMMM dd, yyyy")}
-                      </span>
-                    </div>
-                    <div className="inline-flex items-center text-gray-500">
-                      <Clock10Icon className="h-4 w-4" />
-                      <span className="ml-1">
-                        {getMinutes(readTime.minutes)}
-                      </span>
-                    </div>
-                    <div className="inline-flex items-center text-gray-500">
-                      <MessageCircleIcon className="h-4 w-4" />
-                      <span className="ml-1">{comments?.length}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-3 flex border-t border-gray-900/5 pt-2">
-                  <div className="relative flex items-center gap-x-2">
-                    <Image
-                      src={post.author?.image ?? "/images/avatar.png"}
-                      alt={post.author?.name ?? "Avatar"}
-                      height={40}
-                      width={40}
-                      priority
-                      placeholder={`data:image/svg+xml;base64,${toBase64(
-                        shimmer(40, 40),
-                      )}`}
-                      className="h-[40px] w-[40px] rounded-full bg-gray-50 object-cover"
-                    />
-                    <div className="text-sm">
-                      <p className="font-semibold text-gray-900">
-                        {post.author?.name}
-                      </p>
-                      <p className="text-gray-600">{mainPostConfig.author}</p>
-                    </div>
-                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {mainPostConfig.author}
+                  </p>
                 </div>
               </div>
-            </article>
-          </Link>
+            )}
+          </div>
         </div>
-      </div>
-    </>
+      </article>
+    </Link>
   );
 };
 

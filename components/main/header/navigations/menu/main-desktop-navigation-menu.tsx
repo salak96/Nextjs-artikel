@@ -9,39 +9,29 @@ import { v4 } from "uuid";
 const MainDesktopNavigationMenu = () => {
   const currentPath = usePathname();
   return (
-    <>
-      <div className="hidden gap-x-6 md:flex">
-        {mainCategoryConfig.map((category) => (
+    <div className="hidden items-center gap-1 md:flex">
+      {mainCategoryConfig.map((category) => {
+        const href =
+          category.slug === "/"
+            ? category.slug
+            : `/category/${category.slug}`;
+        const isActive = currentPath === href;
+        return (
           <Link
-            href={
-              category.slug === "/"
-                ? category.slug
-                : `/category/${category.slug}`
-            }
+            href={href}
             key={v4()}
             className={cn(
-              "relative inline-flex items-center rounded-full px-4 py-1.5 text-base font-semibold tracking-tight text-gray-500 antialiased ring-1 ring-transparent transition duration-200 [word-spacing:-5px] active:scale-[96%] active:ring-black/20",
-              {
-                "bg-gradient-to-r from-gray-200 via-gray-100 to-gray-50 px-4 text-gray-600 shadow-md shadow-black/5 ring-1 ring-black/10":
-                  currentPath ===
-                  (category.slug === "/"
-                    ? category.slug
-                    : `/category/${category.slug}`),
-              },
-              {
-                "bg-transparent ring-transparent hover:bg-gradient-to-tr hover:from-gray-200 hover:via-gray-100 hover:to-gray-50 hover:shadow-md hover:shadow-black/5 hover:ring-1 hover:ring-black/10":
-                  currentPath !==
-                  (category.slug === "/"
-                    ? category.slug
-                    : `/category/${category.slug}`),
-              },
+              "rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
+              isActive
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
             )}
           >
-            <div className="relative">{category.title}</div>
+            {category.title}
           </Link>
-        ))}
-      </div>
-    </>
+        );
+      })}
+    </div>
   );
 };
 

@@ -15,6 +15,14 @@ const sharedLoginConfig = {
   emailRequiredError: "Email is required.",
   emailSent: "Email sent.",
   error: "Error occured.",
+
+  // Credential login form
+  emailLabel: "Email",
+  emailPlaceholder: "Enter your email",
+  passwordLabel: "Password",
+  passwordPlaceholder: "Enter your password",
+  passwordRequiredError: "Password is required.",
+  loginButton: "Login",
 };
 
 export default sharedLoginConfig;
