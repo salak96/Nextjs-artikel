@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { error: "Invalid credentials" },
+        { error: "Email tidak terdaftar" },
         { status: 401 }
       );
     }
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     if (!isValid) {
       return NextResponse.json(
-        { error: "Invalid credentials" },
+        { error: "Password salah" },
         { status: 401 }
       );
     }

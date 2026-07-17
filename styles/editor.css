@@ -22,3 +22,19 @@
   --editor-highlight-pink: #faf1f5;
   --editor-highlight-gray: #f1f1ef;
 }
+
+.dark {
+  --editor-stone-50: rgb(30 30 30);
+  --editor-stone-100: rgb(40 40 40);
+  --editor-stone-200: rgb(55 55 55);
+  --editor-stone-300: rgb(70 70 70);
+  --editor-stone-400: rgb(148 148 148);
+  --editor-stone-500: rgb(180 180 180);
+  --editor-stone-600: rgb(200 200 200);
+  --editor-stone-700: rgb(220 220 220);
+  --editor-stone-800: rgb(235 235 235);
+  --editor-stone-900: rgb(245 245 245);
+  --editor-highlight-blue: #1a3a5c;
+  --editor-highlight-purple: #2d1f3a;
+  --editor-highlight-green: #1a3a1a;
+}

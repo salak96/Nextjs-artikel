@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getAdminUser } from "@/lib/admin";
 import { redirect } from "next/navigation";
+import { DeleteButton } from "@/components/dashboard/delete-button";
 
 export default async function UsersPage() {
   const admin = await getAdminUser();
@@ -27,12 +28,13 @@ export default async function UsersPage() {
               <th className="px-4 py-3 text-right font-medium text-muted-foreground">Comments</th>
               <th className="px-4 py-3 text-right font-medium text-muted-foreground">Bookmarks</th>
               <th className="px-4 py-3 text-right font-medium text-muted-foreground">Joined</th>
+              <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {users.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-12 text-center text-sm text-muted-foreground">
+                <td colSpan={6} className="px-4 py-12 text-center text-sm text-muted-foreground">
                   No users found.
                 </td>
               </tr>
@@ -52,6 +54,9 @@ export default async function UsersPage() {
                   <td className="px-4 py-3 text-right text-muted-foreground">{user._count.bookmarks}</td>
                   <td className="px-4 py-3 text-right text-muted-foreground">
                     {new Date(user.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <DeleteButton resource="users" id={user.id} />
                   </td>
                 </tr>
               ))

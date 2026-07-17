@@ -56,6 +56,7 @@ model Category {
 
   title     String
   slug      String @unique
+  hidden    Boolean @default(false)
 
   posts     Post[]
   drafts    Draft[]
@@ -70,7 +71,7 @@ model Post {
   slug        String @unique
 
   image       String?
-  description String?
+  description String? @db.Text
   content     String @db.LongText
 
   categoryId  String

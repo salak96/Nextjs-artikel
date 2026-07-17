@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { getAdminUser } from "@/lib/admin";
 import { redirect } from "next/navigation";
 import { Users } from "lucide-react";
+import { AuthorDialog } from "@/components/dashboard/author-dialog";
+import { DeleteButton } from "@/components/dashboard/delete-button";
 
 export default async function AuthorsPage() {
   const admin = await getAdminUser();
@@ -14,9 +16,12 @@ export default async function AuthorsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Authors</h1>
-        <p className="text-sm text-muted-foreground">Manage article authors</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Authors</h1>
+          <p className="text-sm text-muted-foreground">Manage article authors</p>
+        </div>
+        <AuthorDialog />
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-card">
@@ -27,12 +32,13 @@ export default async function AuthorsPage() {
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Email</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Title</th>
               <th className="px-4 py-3 text-right font-medium text-muted-foreground">Posts</th>
+              <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {authors.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-12 text-center text-sm text-muted-foreground">
+                <td colSpan={5} className="px-4 py-12 text-center text-sm text-muted-foreground">
                   No authors found.
                 </td>
               </tr>
@@ -49,8 +55,20 @@ export default async function AuthorsPage() {
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{author.email}</td>
                   <td className="px-4 py-3 text-muted-foreground">{author.title || "-"}</td>
-                  <td className="px-4 py-3 text-right text-muted-foreground">
-                    {author._count.posts}
+                  <td className="px-4 py-3 text-right text-muted-foreground">{author._count.posts}</td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <AuthorDialog
+                        edit={{
+                          id: author.id,
+                          name: author.name,
+                          email: author.email,
+                          title: author.title,
+                          image: author.image,
+                        }}
+                      />
+                      <DeleteButton resource="authors" id={author.id} />
+                    </div>
                   </td>
                 </tr>
               ))

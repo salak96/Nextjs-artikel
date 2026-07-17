@@ -19,7 +19,7 @@ import { ImageResizer } from "./extensions/image-resizer";
 import { defaultEditorProps } from "./props";
 
 export default function WysiwygEditor({
-  className = "relative w-full focus:ring-orange-600 focus:outline-8 max-w-screen-lg border-stone-200 bg-white sm:mb-[calc(20vh)] sm:rounded-lg sm:border sm:shadow-lg",
+  className = "relative w-full focus:ring-orange-600 focus:outline-8 max-w-screen-lg border-stone-200 bg-white dark:border-gray-700 dark:bg-gray-900 sm:mb-[calc(20vh)] sm:rounded-lg sm:border sm:shadow-lg",
   defaultValue = defaultEditorContent,
   onDebouncedUpdate = () => {},
   debounceDuration = 750,
@@ -80,6 +80,7 @@ export default function WysiwygEditor({
       ...defaultEditorProps,
       ...editorProps,
     },
+    immediatelyRender: false,
     onUpdate: (e) => {
       onUpdate(e.editor);
       debouncedUpdates(e);

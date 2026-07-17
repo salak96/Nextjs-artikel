@@ -5,8 +5,13 @@ import { Disclosure } from "@headlessui/react";
 import React, { Fragment } from "react";
 import { MainMobileMenuButton, MainMobileNavigationMenu } from "./menu";
 import ThemeToggle from "../theme-toggle";
+import type { CategoryType } from "@/types";
 
-const MainMobileNavigation = () => {
+interface Props {
+  categories: CategoryType[];
+}
+
+const MainMobileNavigation = ({ categories }: Props) => {
   return (
     <Disclosure>
       {({ open }) => (
@@ -22,7 +27,7 @@ const MainMobileNavigation = () => {
             </div>
           </nav>
 
-          <MainMobileNavigationMenu fragment={Fragment} />
+          <MainMobileNavigationMenu fragment={Fragment} categories={categories} />
         </>
       )}
     </Disclosure>

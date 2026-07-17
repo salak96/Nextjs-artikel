@@ -21,14 +21,14 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 const menuItems = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Posts", href: "/dashboard/posts", icon: FileText },
-  { label: "Categories", href: "/dashboard/categories", icon: FolderTree },
-  { label: "Authors", href: "/dashboard/authors", icon: Users },
-  { label: "Comments", href: "/dashboard/comments", icon: MessageSquare },
-  { label: "Users", href: "/dashboard/users", icon: UserCircle },
-  { label: "Bookmarks", href: "/dashboard/bookmarks", icon: Bookmark },
-  { label: "Settings", href: "/dashboard/settings", icon: Settings },
+  { label: "Dashboard", href: "/paneladmin", icon: LayoutDashboard },
+  { label: "Posts", href: "/paneladmin/posts", icon: FileText },
+  { label: "Categories", href: "/paneladmin/categories", icon: FolderTree },
+  { label: "Authors", href: "/paneladmin/authors", icon: Users },
+  { label: "Comments", href: "/paneladmin/comments", icon: MessageSquare },
+  { label: "Users", href: "/paneladmin/users", icon: UserCircle },
+  { label: "Bookmarks", href: "/paneladmin/bookmarks", icon: Bookmark },
+  { label: "Settings", href: "/paneladmin/settings", icon: Settings },
 ];
 
 interface SidebarProps {
@@ -57,7 +57,7 @@ export function DashboardSidebar({ admin, mobileOpen, onMobileClose }: SidebarPr
       {/* Menu */}
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
         {menuItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+          const isActive = pathname === item.href || (item.href !== "/paneladmin" && pathname.startsWith(item.href + "/"));
           const Icon = item.icon;
           return (
             <Link

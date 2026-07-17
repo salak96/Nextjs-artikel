@@ -7,7 +7,7 @@ const LoginPage = async () => {
   const sessionToken = cookieStore.get("session_token")?.value;
 
   if (sessionToken) {
-    redirect("/posts");
+    redirect("/paneladmin");
   }
 
   return (

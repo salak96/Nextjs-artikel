@@ -3,9 +3,10 @@
 import { sharedLoginConfig } from "@/config/shared";
 import { LoadingDots } from "@/icons";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 
@@ -35,8 +36,11 @@ const LoginSection: React.FC<LoginSectionProps> = ({ setOpen }) => {
     resolver: zodResolver(FormSchema),
   });
   const router = useRouter();
+  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   async function handleLogin(data: z.infer<typeof FormSchema>) {
+    setError("");
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
@@ -45,10 +49,13 @@ const LoginSection: React.FC<LoginSectionProps> = ({ setOpen }) => {
       });
       if (res.ok) {
         setOpen?.(false);
-        router.push("/posts");
+        router.push("/paneladmin");
+      } else {
+        const body = await res.json();
+        setError(body.error || "Login gagal");
       }
     } catch (error) {
-      console.error('Login failed:', error);
+      setError("Terjadi kesalahan. Coba lagi.");
     }
   }
 
@@ -80,7 +87,7 @@ const LoginSection: React.FC<LoginSectionProps> = ({ setOpen }) => {
           </label>
           <input
             id="email"
-            type="text"
+            type="email"
             {...register("email")}
             placeholder={sharedLoginConfig.emailPlaceholder}
             className="h-10 rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
@@ -94,17 +101,33 @@ const LoginSection: React.FC<LoginSectionProps> = ({ setOpen }) => {
           <label htmlFor="password" className="text-sm font-medium text-foreground">
             {sharedLoginConfig.passwordLabel}
           </label>
-          <input
-            id="password"
-            type="password"
-            {...register("password")}
-            placeholder={sharedLoginConfig.passwordPlaceholder}
-            className="h-10 rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
-          />
+          <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              {...register("password")}
+              placeholder={sharedLoginConfig.passwordPlaceholder}
+              className="h-10 w-full rounded-lg border border-border bg-background px-3 pr-10 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
           {errors.password && (
             <p className="text-xs text-destructive">{errors.password.message}</p>
           )}
         </div>
+
+        {error && (
+          <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {error}
+          </p>
+        )}
 
         <button
           type="submit"

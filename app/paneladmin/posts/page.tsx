@@ -2,7 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { getAdminUser } from "@/lib/admin";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Plus, Search } from "lucide-react";
+import { Search } from "lucide-react";
+import { DeleteButton } from "@/components/dashboard/delete-button";
+import { PostEditorModal } from "@/components/dashboard/post-editor-modal";
 
 export default async function PostsPage({
   searchParams,
@@ -16,11 +18,9 @@ export default async function PostsPage({
   const limit = 10;
   const q = searchParams.q || "";
 
-  const where = q
-    ? { title: { contains: q } }
-    : {};
+  const where = q ? { title: { contains: q } } : {};
 
-  const [posts, total] = await Promise.all([
+  const [posts, total, categories] = await Promise.all([
     prisma.post.findMany({
       where,
       include: { category: true, author: true },
@@ -29,6 +29,7 @@ export default async function PostsPage({
       take: limit,
     }),
     prisma.post.count({ where }),
+    prisma.category.findMany({ orderBy: { title: "asc" } }),
   ]);
 
   const totalPages = Math.ceil(total / limit);
@@ -40,16 +41,9 @@ export default async function PostsPage({
           <h1 className="text-2xl font-bold text-foreground">Posts</h1>
           <p className="text-sm text-muted-foreground">Manage your posts</p>
         </div>
-        <Link
-          href="/editor/posts/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
-        >
-          <Plus className="h-4 w-4" />
-          New Post
-        </Link>
+        <PostEditorModal categories={categories} />
       </div>
 
-      {/* Search */}
       <form className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
         <Search className="h-4 w-4 text-muted-foreground" />
         <input
@@ -63,7 +57,6 @@ export default async function PostsPage({
         </button>
       </form>
 
-      {/* Table */}
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         <table className="w-full text-sm">
           <thead>
@@ -113,12 +106,19 @@ export default async function PostsPage({
                       >
                         View
                       </Link>
-                      <Link
-                        href={`/editor/posts/${post.id}`}
-                        className="rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-                      >
-                        Edit
-                      </Link>
+                      <PostEditorModal
+                        categories={categories}
+                        edit={{
+                          id: post.id,
+                          title: post.title,
+                          slug: post.slug,
+                          description: post.description,
+                          content: post.content,
+                          categoryId: post.categoryId,
+                          image: post.image,
+                        }}
+                      />
+                      <DeleteButton resource="posts" id={post.id} />
                     </div>
                   </td>
                 </tr>
@@ -127,7 +127,6 @@ export default async function PostsPage({
           </tbody>
         </table>
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between border-t border-border px-4 py-3">
             <p className="text-sm text-muted-foreground">
@@ -135,7 +134,7 @@ export default async function PostsPage({
             </p>
             <div className="flex items-center gap-2">
               <Link
-                href={`/dashboard/posts?page=${page - 1}${q ? `&q=${q}` : ""}`}
+                href={`/paneladmin/posts?page=${page - 1}${q ? `&q=${q}` : ""}`}
                 className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
                   page <= 1
                     ? "pointer-events-none text-muted-foreground/50"
@@ -145,7 +144,7 @@ export default async function PostsPage({
                 Previous
               </Link>
               <Link
-                href={`/dashboard/posts?page=${page + 1}${q ? `&q=${q}` : ""}`}
+                href={`/paneladmin/posts?page=${page + 1}${q ? `&q=${q}` : ""}`}
                 className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
                   page >= totalPages
                     ? "pointer-events-none text-muted-foreground/50"

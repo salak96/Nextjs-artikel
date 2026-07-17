@@ -1,19 +1,18 @@
 "use client";
 
-import { mainCategoryConfig } from "@/config/main";
 import { Disclosure, Transition } from "@headlessui/react";
 import { useRouter } from "next/navigation";
 import { ExoticComponent, FC, ReactNode } from "react";
-import { v4 } from "uuid";
+import type { CategoryType } from "@/types";
 
 interface MainMobileNavigationMenuProps {
-  fragment: ExoticComponent<{
-    children?: ReactNode | undefined;
-  }>;
+  fragment: ExoticComponent<{ children?: ReactNode | undefined }>;
+  categories: CategoryType[];
 }
 
 const MainMobileNavigationMenu: FC<MainMobileNavigationMenuProps> = ({
   fragment,
+  categories,
 }) => {
   const router = useRouter();
 
@@ -29,20 +28,18 @@ const MainMobileNavigationMenu: FC<MainMobileNavigationMenuProps> = ({
     >
       <Disclosure.Panel className="border-t border-border bg-background px-4 pb-4 pt-2">
         <div className="space-y-1">
-          {mainCategoryConfig.map((category) => (
+          {categories.map((category) => (
             <Disclosure.Button
-              key={v4()}
+              key={category.id || "/"}
               as="a"
               onClick={() =>
                 router.push(
-                  category.slug === "/"
-                    ? category.slug
-                    : `/category/${category.slug}`,
+                  category.slug === "/" ? "/" : `/category/${category.slug}`,
                 )
               }
               className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
             >
-              <category.icon className="h-5 w-5 text-muted-foreground" />
+              {category.icon && <category.icon className="h-5 w-5 text-muted-foreground" />}
               {category.title}
             </Disclosure.Button>
           ))}

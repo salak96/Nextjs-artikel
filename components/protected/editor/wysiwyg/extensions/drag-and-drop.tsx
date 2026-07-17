@@ -1,7 +1,7 @@
 import { Extension } from "@tiptap/core";
 import { NodeSelection, Plugin } from "@tiptap/pm/state";
-// @ts-ignore
-import { __serializeForClipboard, EditorView } from "@tiptap/pm/view";
+import { DOMSerializer } from "@tiptap/pm/model";
+import { EditorView } from "@tiptap/pm/view";
 
 export interface DragHandleOptions {
   /**
@@ -67,7 +67,10 @@ function DragHandle(options: DragHandleOptions) {
     );
 
     const slice = view.state.selection.content();
-    const { dom, text } = __serializeForClipboard(view, slice);
+    const fragment = DOMSerializer.fromSchema(view.state.schema).serializeFragment(slice.content);
+    const dom = document.createElement("div");
+    dom.appendChild(fragment);
+    const text = dom.textContent || "";
 
     event.dataTransfer.clearData();
     event.dataTransfer.setData("text/html", dom.innerHTML);

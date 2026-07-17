@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getAdminUser } from "@/lib/admin";
 import { redirect } from "next/navigation";
+import { DeleteButton } from "@/components/dashboard/delete-button";
 
 export default async function BookmarksPage() {
   const admin = await getAdminUser();
@@ -26,12 +27,13 @@ export default async function BookmarksPage() {
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">User</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Post</th>
               <th className="px-4 py-3 text-right font-medium text-muted-foreground">Date</th>
+              <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {bookmarks.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-4 py-12 text-center text-sm text-muted-foreground">
+                <td colSpan={4} className="px-4 py-12 text-center text-sm text-muted-foreground">
                   No bookmarks yet.
                 </td>
               </tr>
@@ -44,6 +46,9 @@ export default async function BookmarksPage() {
                   <td className="px-4 py-3 text-muted-foreground">{bm.post?.title || "-"}</td>
                   <td className="px-4 py-3 text-right text-muted-foreground">
                     {new Date(bm.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <DeleteButton resource="bookmarks" id={bm.id} />
                   </td>
                 </tr>
               ))

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getAdminUser } from "@/lib/admin";
 import { redirect } from "next/navigation";
+import { DeleteButton } from "@/components/dashboard/delete-button";
 
 export default async function CommentsPage() {
   const admin = await getAdminUser();
@@ -25,12 +26,13 @@ export default async function CommentsPage() {
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Author</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Comment</th>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Date</th>
+              <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {comments.length === 0 ? (
               <tr>
-                <td colSpan={3} className="px-4 py-12 text-center text-sm text-muted-foreground">
+                <td colSpan={4} className="px-4 py-12 text-center text-sm text-muted-foreground">
                   No comments yet.
                 </td>
               </tr>
@@ -45,11 +47,12 @@ export default async function CommentsPage() {
                       <span className="font-medium text-foreground">{comment.username}</span>
                     </div>
                   </td>
-                  <td className="max-w-xs truncate px-4 py-3 text-muted-foreground">
-                    {comment.comment}
-                  </td>
+                  <td className="max-w-xs truncate px-4 py-3 text-muted-foreground">{comment.comment}</td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {new Date(comment.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <DeleteButton resource="comments" id={comment.id} />
                   </td>
                 </tr>
               ))

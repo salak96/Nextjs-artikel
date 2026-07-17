@@ -1,25 +1,25 @@
 "use client";
 
-import { mainCategoryConfig } from "@/config/main";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { v4 } from "uuid";
+import type { CategoryType } from "@/types";
 
-const MainDesktopNavigationMenu = () => {
+interface Props {
+  categories: CategoryType[];
+}
+
+const MainDesktopNavigationMenu = ({ categories }: Props) => {
   const currentPath = usePathname();
   return (
     <div className="hidden items-center gap-1 md:flex">
-      {mainCategoryConfig.map((category) => {
-        const href =
-          category.slug === "/"
-            ? category.slug
-            : `/category/${category.slug}`;
+      {categories.map((category) => {
+        const href = category.slug === "/" ? "/" : `/category/${category.slug}`;
         const isActive = currentPath === href;
         return (
           <Link
+            key={category.id || "/"}
             href={href}
-            key={v4()}
             className={cn(
               "rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
               isActive
