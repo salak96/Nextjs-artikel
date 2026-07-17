@@ -45,7 +45,7 @@ const LoginSection: React.FC<LoginSectionProps> = ({ setOpen }) => {
       });
       if (res.ok) {
         setOpen?.(false);
-        router.push("/dashboard");
+        router.push("/posts");
       }
     } catch (error) {
       console.error('Login failed:', error);
