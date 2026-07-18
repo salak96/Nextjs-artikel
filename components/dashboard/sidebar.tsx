@@ -10,6 +10,7 @@ import {
   UserCircle,
   Bookmark,
   Settings,
+  Palette,
   LogOut,
   X,
   ChevronLeft,
@@ -28,6 +29,7 @@ const menuItems = [
   { label: "Comments", href: "/paneladmin/comments", icon: MessageSquare },
   { label: "Users", href: "/paneladmin/users", icon: UserCircle },
   { label: "Bookmarks", href: "/paneladmin/bookmarks", icon: Bookmark },
+  { label: "Appearance", href: "/paneladmin/appearance", icon: Palette },
   { label: "Settings", href: "/paneladmin/settings", icon: Settings },
 ];
 

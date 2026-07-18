@@ -22,7 +22,7 @@ const DetailPostCommentItem: React.FC<DetailPostCommentItemProps> = ({
   userId,
 }) => {
   return (
-    <div className="my-4 rounded-lg border border-border bg-background p-4">
+    <div className="my-4 rounded-lg border border-border bg-background p-4 text-foreground dark:bg-card dark:text-foreground">
       <div className="flex space-x-3">
         <div className="flex-shrink-0">
           <Avatar>
@@ -48,7 +48,7 @@ const DetailPostCommentItem: React.FC<DetailPostCommentItemProps> = ({
       </div>
       <Separator className="mb-3 mt-2" />
       <div
-        className="prose prose-sm max-w-none text-card-foreground dark:prose-invert"
+        className="prose prose-sm max-w-none text-foreground"
         dangerouslySetInnerHTML={{ __html: comment }}
       />
     </div>

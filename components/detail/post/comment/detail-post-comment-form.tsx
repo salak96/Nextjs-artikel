@@ -76,7 +76,7 @@ const DetailPostCommentForm: React.FC<DetailPostCommentFormProps> = ({
             <FormItem>
               <FormLabel>{detailCommentConfig.title}</FormLabel>
               <FormControl>
-                <Textarea {...field} className="bg-white" />
+                <Textarea {...field} className="bg-background" />
               </FormControl>
               <FormMessage />
             </FormItem>

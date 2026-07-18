@@ -1,13 +1,9 @@
-import { MainPostItem } from "@/components/main";
-import { SharedEmpty, SharedPagination } from "@/components/shared";
+import CategorySwitcher from "@/components/layout/category-switcher";
 import { seoData } from "@/config/root/seo";
 import { getOgImageUrl, getUrl } from "@/lib/utils";
-import { cookies } from "next/headers";
-import { notFound } from "next/navigation";
-import React from "react";
-import { v4 } from "uuid";
 import { prisma } from "@/lib/prisma";
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
 
 interface CategoryPageProps {
   params: {
@@ -24,18 +20,20 @@ export async function generateMetadata({
 
   if (!category) return {};
 
+  const url = process.env.NEXT_PUBLIC_WEB_URL || "https://ub.cafe";
+
   return {
     title: category.title,
-    description: seoData.absoluteTitle,
+    description: `Articles in ${category.title} - ${seoData.absoluteTitle}`,
     authors: {
       name: seoData.author.name,
       url: seoData.author.twitterUrl,
     },
     openGraph: {
       title: category.title,
-      description: seoData.absoluteTitle,
-      type: "article",
-      url: `${getUrl()}${slug}`,
+      description: `Articles in ${category.title}`,
+      type: "website",
+      url: `${url}/category/${slug}`,
       images: [
         {
           url: getOgImageUrl(category.title, seoData.absoluteTitle, seoData.tags, slug),
@@ -48,8 +46,11 @@ export async function generateMetadata({
     twitter: {
       card: "summary_large_image",
       title: category.title,
-      description: seoData.absoluteTitle,
+      description: `Articles in ${category.title}`,
       images: [getOgImageUrl(category.title, seoData.absoluteTitle, seoData.tags, slug)],
+    },
+    alternates: {
+      canonical: `/category/${slug}`,
     },
   };
 }
@@ -63,43 +64,10 @@ export default async function CategoryPage({
 
   if (!category) notFound();
 
-  const limit = 10;
   const page =
     typeof searchParams.page === "string" && +searchParams.page > 1
       ? +searchParams.page
       : 1;
-  const skip = (page - 1) * limit;
 
-  const count = await prisma.post.count({ where: { categoryId: category.id } });
-  const totalPages = count ? Math.ceil(count / limit) : 0;
-
-  const data = await prisma.post.findMany({
-    where: { categoryId: category.id },
-    include: { category: true, author: true },
-    orderBy: { createdAt: "desc" },
-    skip,
-    take: limit,
-  });
-
-  if (!data || !data.length) notFound();
-
-  return (
-    <>
-      <div className="my-5 space-y-6">
-        {data?.length === 0 ? (
-          <SharedEmpty />
-        ) : (
-          data?.map((post) => <MainPostItem key={v4()} post={post} />)
-        )}
-      </div>
-      {totalPages > 1 && (
-        <SharedPagination
-          page={page}
-          totalPages={totalPages}
-          baseUrl={`/category/${slug}`}
-          pageUrl="?page="
-        />
-      )}
-    </>
-  );
+  return <CategorySwitcher slug={slug} page={page} />;
 }
