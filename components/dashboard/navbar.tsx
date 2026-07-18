@@ -1,11 +1,12 @@
 "use client";
 
 import type { AdminUser } from "@/lib/admin";
-import { Menu, Search, Bell, LogOut } from "lucide-react";
+import { Menu, Search, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { DashboardSidebar } from "./sidebar";
 import ThemeToggle from "@/components/main/header/theme-toggle";
+import { NotificationDropdown } from "./notification-dropdown";
 
 interface NavbarProps {
   admin: NonNullable<AdminUser>;
@@ -39,10 +40,7 @@ export function DashboardNavbar({ admin }: NavbarProps) {
         <div className="flex flex-1 items-center justify-end gap-2">
           <ThemeToggle />
 
-          <button className="relative rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
-            <Bell className="h-5 w-5" />
-            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive" />
-          </button>
+          <NotificationDropdown />
 
           <div className="flex items-center gap-2 border-l border-border pl-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">

@@ -34,6 +34,15 @@ export async function POST(req: Request) {
         image: image || null,
       },
     });
+
+    await prisma.notification.create({
+      data: {
+        message: `Post "${title}" has been created`,
+        type: "post",
+        link: `/read/${slug}`,
+      },
+    });
+
     return NextResponse.json(post);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Create failed";

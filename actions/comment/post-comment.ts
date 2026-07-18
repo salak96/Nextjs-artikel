@@ -26,6 +26,16 @@ export async function PostComment(context: z.infer<typeof commentSchema>) {
       },
     });
 
+    const post = await prisma.post.findUnique({ where: { id: comment.postId }, select: { title: true, slug: true } });
+
+    await prisma.notification.create({
+      data: {
+        message: `New comment on "${post?.title || "a post"}"`,
+        type: "comment",
+        link: post ? `/read/${post.slug}` : null,
+      },
+    });
+
     return true;
   } catch (error) {
     if (error instanceof z.ZodError) {

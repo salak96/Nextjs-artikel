@@ -89,7 +89,7 @@ export default async function PostsPage({
                       )}
                       <div className="min-w-0">
                         <p className="truncate font-medium text-foreground">{post.title}</p>
-                        <p className="truncate text-xs text-muted-foreground">{post.description}</p>
+                        <p className="truncate text-xs text-muted-foreground">{post.description ? (post.description.length > 50 ? post.description.slice(0, 50) + "..." : post.description) : ""}</p>
                       </div>
                     </div>
                   </td>
